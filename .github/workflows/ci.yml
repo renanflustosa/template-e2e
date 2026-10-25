@@ -1,0 +1,30 @@
+# Valida o próprio kit: roda toda a suíte contra o servidor de demonstração (sem BASE_URL).
+# Num projeto real, troque por um job que sobe o app ou aponte para a homologação.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
+        env:
+          CI: 'true'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: evidencias
+          path: evidencias/relatorio/
+          retention-days: 14

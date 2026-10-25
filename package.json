@@ -1,0 +1,14 @@
+{
+  "name": "cliente-projeto",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "smoke": "playwright test --grep @smoke",
+    "relatorio": "playwright show-report evidencias/relatorio"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.0",
+    "@types/node": "^24.0.0"
+  }
+}

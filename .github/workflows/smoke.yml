@@ -1,0 +1,38 @@
+# Monitoramento da manutenção mensal: roda o smoke todo dia às 08h BRT.
+# Falha = e-mail automático do GitHub para o dono do repositório.
+# Configure em Settings > Secrets and variables > Actions: BASE_URL (obrigatório), E2E_USUARIO, E2E_SENHA.
+name: smoke
+
+on:
+  schedule:
+    - cron: '0 11 * * *'
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Exigir BASE_URL
+        run: test -n "$BASE_URL" || { echo "Defina o secret BASE_URL"; exit 1; }
+        env:
+          BASE_URL: ${{ secrets.BASE_URL }}
+      - run: npx playwright test --grep @smoke
+        env:
+          CI: 'true'
+          BASE_URL: ${{ secrets.BASE_URL }}
+          E2E_USUARIO: ${{ secrets.E2E_USUARIO }}
+          E2E_SENHA: ${{ secrets.E2E_SENHA }}
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: evidencias
+          path: evidencias/
+          retention-days: 14
